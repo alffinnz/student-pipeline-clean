@@ -1,352 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Data Pipeline Analyzer</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
-        }
-        
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        
-        .upload-section {
-            border: 2px dashed #667eea;
-            border-radius: 10px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .upload-section:hover {
-            border-color: #764ba2;
-            background: #f8f9ff;
-        }
-        
-        .upload-section input[type="file"] {
-            display: none;
-        }
-        
-        .upload-label {
-            cursor: pointer;
-            display: block;
-        }
-        
-        .upload-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-        
-        .file-name {
-            color: #667eea;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-process {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            margin-bottom: 10px;
-        }
-        
-        .btn-process:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-process:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .btn-sample {
-            background: #f0f0f0;
-            color: #333;
-        }
-        
-        .btn-sample:hover {
-            background: #e0e0e0;
-        }
-        
-        .result {
-            margin-top: 20px;
-            padding: 20px;
-            border-radius: 8px;
-            display: none;
-        }
-        
-        .result.success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-        
-        .result.error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-        
-        .result h3 {
-            margin-bottom: 10px;
-        }
-        
-        .result.success h3 {
-            color: #155724;
-        }
-        
-        .result.error h3 {
-            color: #721c24;
-        }
-        
-        .preview-table {
-            margin-top: 15px;
-            overflow-x: auto;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-        
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        th {
-            background: #667eea;
-            color: white;
-        }
-        
-        tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-        
-        .grade-A { color: #28a745; font-weight: bold; }
-        .grade-B { color: #17a2b8; font-weight: bold; }
-        .grade-C { color: #ffc107; font-weight: bold; }
-        .grade-Fail { color: #dc3545; font-weight: bold; }
-        
-        .info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e7f3ff;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #333;
-        }
-        
-        .info h4 {
-            margin-bottom: 8px;
-            color: #0056b3;
-        }
-        
-        .info ul {
-            margin-left: 20px;
-        }
-        
-        .info li {
-            margin-bottom: 5px;
-        }
-    </style>
+    <title>Student Data Pipeline</title>
 </head>
 <body>
-    <div class="container">
-        <h1>🎓 Student Data Pipeline Analyzer</h1>
-        <p class="subtitle">Process student grades with automatic ranking and grading</p>
-        
-        <div class="upload-section">
-            <label class="upload-label">
-                <div class="upload-icon">📁</div>
-                <div>Click to upload CSV file</div>
-                <div>or drag and drop</div>
-                <input type="file" id="fileInput" accept=".csv">
-                <div class="file-name" id="fileName"></div>
-            </label>
-        </div>
-        
-        <button class="btn btn-process" id="processBtn" disabled>Process Data</button>
-        <button class="btn btn-sample" id="sampleBtn">Load Sample Data</button>
-        
-        <div class="result" id="result">
-            <h3 id="resultTitle"></h3>
-            <p id="resultMessage"></p>
-            <div class="preview-table" id="previewTable"></div>
-        </div>
-        
-        <div class="info">
-            <h4>📋 Expected CSV Format:</h4>
-            <ul>
-                <li>First column: Name (student names)</li>
-                <li>Other columns: Subject marks (Math, Science, etc.)</li>
-                <li>Example: Name,Math,Science,English,History</li>
-            </ul>
-        </div>
-    </div>
-    
-    <script>
-        let csvData = '';
-        
-        // File input change handler
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                document.getElementById('fileName').textContent = file.name;
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    csvData = event.target.result;
-                    document.getElementById('processBtn').disabled = false;
-                };
-                reader.readAsText(file);
-            }
-        });
-        
-        // Sample data button
-        document.getElementById('sampleBtn').addEventListener('click', function() {
-            csvData = `Name,Math,Science,English,History
-Alice,85,90,88,92
-Bob,92,88,95,90
-Charlie,78,82,75,80
-Diana,95,91,89,88
-Eve,65,70,72,68
-Frank,88,85,90,82
-Grace,72,68,80,75
-Henry,90,87,85,83`;
-            
-            document.getElementById('fileName').textContent = 'sample_students.csv';
-            document.getElementById('processBtn').disabled = false;
-        });
-        
-        // Process button
-        document.getElementById('processBtn').addEventListener('click', async function() {
-            const btn = this;
-            btn.disabled = true;
-            btn.textContent = 'Processing...';
-            
-            try {
-                const response = await fetch('/api/process', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ csv: csvData })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-                
-                const resultCsv = await response.text();
-                
-                // Show success
-                const resultDiv = document.getElementById('result');
-                resultDiv.className = 'result success';
-                document.getElementById('resultTitle').textContent = '✅ Processing Complete!';
-                document.getElementById('resultMessage').textContent = 'Your data has been processed with grades and rankings.';
-                
-                // Show preview table
-                const rows = resultCsv.split('\n');
-                let tableHtml = '<table><thead><tr>';
-                const headers = rows[0].split(',');
-                headers.forEach(h => tableHtml += `<th>${h}</th>`);
-                tableHtml += '</tr></thead><tbody>';
-                
-                for (let i = 1; i < Math.min(rows.length, 6); i++) {
-                    if (rows[i].trim()) {
-                        const cols = rows[i].split(',');
-                        tableHtml += '<tr>';
-                        cols.forEach((col, idx) => {
-                            if (headers[idx] === 'Grade') {
-                                const gradeClass = 'grade-' + col;
-                                tableHtml += `<td class="${gradeClass}">${col}</td>`;
-                            } else {
-                                tableHtml += `<td>${col}</td>`;
-                            }
-                        });
-                        tableHtml += '</tr>';
-                    }
-                }
-                tableHtml += '</tbody></table>';
-                document.getElementById('previewTable').innerHTML = tableHtml;
-                
-                // Auto-download
-                downloadCSV(resultCsv, 'processed_students.csv');
-                
-            } catch (error) {
-                const resultDiv = document.getElementById('result');
-                resultDiv.className = 'result error';
-                document.getElementById('resultTitle').textContent = '❌ Error';
-                document.getElementById('resultMessage').textContent = error.message;
-                document.getElementById('previewTable').innerHTML = '';
-            }
-            
-            btn.disabled = false;
-            btn.textContent = 'Process Data';
-        });
-        
-        // Download function
-        function downloadCSV(csv, filename) {
-            const blob = new Blob([csv], { type: 'text/csv' });
+
+<h2>Upload Student CSV</h2>
+
+<input type="file" id="fileInput">
+<button onclick="uploadFile()">Process</button>
+
+<script>
+function uploadFile() {
+    const file = document.getElementById("fileInput").files[0];
+
+    if (!file) {
+        alert("Please select a file");
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        fetch('https://student-pipeline.onrender.com/process', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain'
+            },
+            body: e.target.result
+        })
+        .then(response => response.text())
+        .then(data => {
+            const blob = new Blob([data], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
+
             const a = document.createElement('a');
             a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
+            a.download = 'processed_students.csv';
             a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }
-    </script>
+        })
+        .catch(error => {
+            console.error(error);
+            alert("Error processing file");
+        });
+    };
+
+    reader.readAsText(file);
+}
+</script>
+
 </body>
 </html>
