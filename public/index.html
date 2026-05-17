@@ -1,147 +1,543 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Student Data Pipeline</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Data Pipeline</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-primary: #14192d;
+      --bg-card: rgba(255, 255, 255, 0.14);
+      --bg-panel: rgba(255, 255, 255, 0.12);
+      --text-primary: #f8f9ff;
+      --text-secondary: #c7d0ff;
+      --accent: #7f5cff;
+      --accent-soft: rgba(127, 92, 255, 0.16);
+      --border: rgba(255, 255, 255, 0.18);
+      --success: #3adb76;
+      --error: #ff6b6b;
+      --info: #f5f6ff;
+    }
 
-    <style>
-        body{
-            font-family: Arial, sans-serif;
-            margin:0;
-            padding:0;
-            background: linear-gradient(135deg,#4e54c8,#8f94fb);
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            height:100vh;
-        }
+    * {
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
 
-        .container{
-            background:white;
-            width:500px;
-            padding:30px;
-            border-radius:20px;
-            text-align:center;
-            box-shadow:0 10px 30px rgba(0,0,0,.2);
-        }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-primary);
+      background: radial-gradient(circle at top left, rgba(154, 92, 255, 0.3), transparent 26%),
+        radial-gradient(circle at right, rgba(96, 199, 255, 0.18), transparent 18%),
+        linear-gradient(135deg, #1f2041 0%, #292d55 45%, #373f6b 100%);
+    }
 
-        h1{
-            color:#333;
-        }
+    .page {
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 80px;
+    }
 
-        p{
-            color:gray;
-            margin-bottom:25px;
-        }
+    .hero {
+      display: grid;
+      gap: 24px;
+      align-items: center;
+      margin-bottom: 32px;
+    }
 
-        input{
-            margin:20px 0;
-        }
+    .hero-text {
+      max-width: 640px;
+    }
 
-        button{
-            width:100%;
-            padding:14px;
-            border:none;
-            border-radius:10px;
-            background:#4e54c8;
-            color:white;
-            font-size:16px;
-            cursor:pointer;
-        }
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2.2rem, 3vw, 3.2rem);
+      letter-spacing: -0.03em;
+    }
 
-        button:hover{
-            opacity:.9;
-        }
+    p.lead {
+      margin: 0;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 680px;
+    }
 
-        #status{
-            margin-top:20px;
-            font-weight:bold;
-        }
+    .layout {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: 1.4fr 1fr;
+    }
 
-    </style>
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      backdrop-filter: blur(18px);
+      padding: 28px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+    }
+
+    .upload-zone {
+      display: grid;
+      gap: 18px;
+      padding: 32px;
+      border: 2px dashed rgba(255, 255, 255, 0.28);
+      border-radius: 24px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg-panel);
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: rgba(127, 92, 255, 0.55);
+      background: rgba(127, 92, 255, 0.1);
+    }
+
+    .upload-zone span {
+      display: block;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    .upload-zone strong {
+      color: var(--text-primary);
+      font-size: 1.05rem;
+    }
+
+    .upload-zone small {
+      color: var(--text-secondary);
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .button-row {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    button,
+    .download-link {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(135deg, #7f5cff, #2b92ff);
+      box-shadow: 0 16px 30px rgba(33, 33, 44, 0.22);
+    }
+
+    button:disabled {
+      opacity: 0.64;
+      cursor: not-allowed;
+    }
+
+    .status-message {
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid transparent;
+      font-size: 0.99rem;
+      line-height: 1.6;
+    }
+
+    .status-message.info {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .status-message.success {
+      color: #d4ffd1;
+      background: rgba(59, 173, 118, 0.16);
+      border-color: rgba(59, 173, 118, 0.28);
+    }
+
+    .status-message.error {
+      color: #ffd1d1;
+      background: rgba(255, 107, 107, 0.16);
+      border-color: rgba(255, 107, 107, 0.28);
+    }
+
+    .stats-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 18px;
+    }
+
+    .stat-card {
+      padding: 20px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .stat-card h3 {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      font-weight: 700;
+    }
+
+    .stat-card p {
+      margin: 0;
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .charts-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 28px;
+    }
+
+    .chart-card {
+      padding: 20px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .chart-card h3 {
+      margin: 0 0 16px;
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 320px !important;
+    }
+
+    .download-link {
+      display: inline-flex;
+      justify-content: center;
+      width: 100%;
+      text-decoration: none;
+    }
+
+    .footer-note {
+      margin-top: 24px;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255, 255, 255, 0.35);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .layout,
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        text-align: center;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-text">
+        <span style="color: #7f5cff; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.82rem;">Student Data Pipeline</span>
+        <h1>Smart student analytics with document upload</h1>
+        <p class="lead">Upload CSV, Excel, Word, or PDF student tables, then download a processed Excel report with ranking, grades and class insights.</p>
+      </div>
+      <div class="card" style="padding: 28px;">
+        <div class="upload-zone" id="dropZone">
+          <strong id="uploadTitle">Drag & drop your file here</strong>
+          <span id="uploadHint">Supported formats: CSV, XLSX, DOCX, PDF</span>
+          <small>or click to browse your computer</small>
+        </div>
+        <input class="file-input" id="fileInput" type="file" accept=".csv,.xlsx,.docx,.pdf" />
+        <div class="button-row">
+          <button id="processButton" type="button">Process Data</button>
+          <a id="downloadLink" class="download-link" style="display:none;">Download Excel Report</a>
+        </div>
+        <div id="status" class="status-message info">No file selected yet.</div>
+      </div>
+    </section>
 
-<div class="container">
+    <section id="resultSection" class="layout" style="display:none;">
+      <div class="card">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Students</h3>
+            <p id="totalStudents">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Top Student</h3>
+            <p id="topStudent">N/A</p>
+          </div>
+          <div class="stat-card">
+            <h3>Class Average</h3>
+            <p id="avgClass">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Grade Counts</h3>
+            <p id="gradeCounts">A: 0 • B: 0 • C: 0 • Fail: 0</p>
+          </div>
+        </div>
+      </div>
 
-<h1>🎓 Student Data Pipeline</h1>
+      <div class="card chart-card">
+        <h3>Grade Distribution</h3>
+        <canvas id="gradeChart"></canvas>
+      </div>
+    </section>
 
-<p>Upload your CSV file to analyze student performance</p>
+    <section id="chartsSection" class="charts-grid" style="display:none;">
+      <div class="chart-card">
+        <h3>Top Students</h3>
+        <canvas id="topStudentsChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Subject Averages</h3>
+        <canvas id="subjectChart"></canvas>
+      </div>
+    </section>
 
-<input type="file" id="fileInput">
+    <p class="footer-note">Your processed Excel report will download automatically after the file is ready.</p>
+  </main>
 
-<br>
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const processButton = document.getElementById('processButton');
+    const statusEl = document.getElementById('status');
+    const resultSection = document.getElementById('resultSection');
+    const chartsSection = document.getElementById('chartsSection');
+    const downloadLink = document.getElementById('downloadLink');
+    const totalStudentsEl = document.getElementById('totalStudents');
+    const topStudentEl = document.getElementById('topStudent');
+    const avgClassEl = document.getElementById('avgClass');
+    const gradeCountsEl = document.getElementById('gradeCounts');
 
-<button onclick="uploadFile()" id="btn">
-Process Data
-</button>
+    let selectedFile = null;
+    let gradeChart = null;
+    let topStudentsChart = null;
+    let subjectChart = null;
 
-<div id="status"></div>
+    const acceptedTypes = ['csv', 'xlsx', 'docx', 'pdf'];
 
-</div>
+    function setStatus(message, type = 'info') {
+      statusEl.textContent = message;
+      statusEl.className = `status-message ${type}`;
+    }
 
-<script>
+    function setLoading(isLoading) {
+      processButton.disabled = isLoading;
+      processButton.innerHTML = isLoading
+        ? '<span class="spinner"></span> Processing...'
+        : 'Process Data';
+    }
 
-function uploadFile(){
+    function updateFile(file) {
+      if (!file) return;
+      selectedFile = file;
+      document.getElementById('uploadTitle').textContent = file.name;
+      setStatus(`Selected file: ${file.name}`, 'success');
+    }
 
-const file=document.getElementById("fileInput").files[0]
-const status=document.getElementById("status")
-const btn=document.getElementById("btn")
+    function validateFile(file) {
+      if (!file) {
+        return '❌ No file selected';
+      }
+      const extension = file.name.split('.').pop().toLowerCase();
+      if (!acceptedTypes.includes(extension)) {
+        return '❌ Wrong file type. Upload CSV, XLSX, DOCX, or PDF.';
+      }
+      return '';
+    }
 
-if(!file){
-status.innerHTML="❌ Please select a CSV file"
-return
-}
+    function handleDrop(event) {
+      event.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const file = event.dataTransfer.files[0];
+      if (file) updateFile(file);
+    }
 
-btn.innerHTML="Processing..."
-btn.disabled=true
+    function handleDragOver(event) {
+      event.preventDefault();
+      dropZone.classList.add('drag-over');
+    }
 
-const reader=new FileReader()
+    function handleDragLeave() {
+      dropZone.classList.remove('drag-over');
+    }
 
-reader.onload=function(e){
+    function initializeCharts() {
+      const gradeCtx = document.getElementById('gradeChart').getContext('2d');
+      const topCtx = document.getElementById('topStudentsChart').getContext('2d');
+      const subjectCtx = document.getElementById('subjectChart').getContext('2d');
 
-fetch("https://student-pipeline.onrender.com/process",{
-method:"POST",
-body:e.target.result
-})
+      gradeChart = new Chart(gradeCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['A', 'B', 'C', 'Fail'],
+          datasets: [{
+            data: [0, 0, 0, 0],
+            backgroundColor: ['#7f5cff', '#3b82f6', '#22c55e', '#ef4444'],
+            borderWidth: 0,
+          }],
+        },
+        options: {
+          plugins: { legend: { labels: { color: '#c7d0ff' } } },
+        },
+      });
 
-.then(response=>response.blob())
+      topStudentsChart = new Chart(topCtx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Average Score',
+            data: [],
+            backgroundColor: '#7f5cff',
+            borderRadius: 10,
+            maxBarThickness: 36,
+          }],
+        },
+        options: {
+          scales: {
+            x: { ticks: { color: '#c7d0ff' }, grid: { display: false } },
+            y: { ticks: { color: '#c7d0ff' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true },
+          },
+        },
+      });
 
-.then(blob=>{
+      subjectChart = new Chart(subjectCtx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Subject Average',
+            data: [],
+            borderColor: '#2b92ff',
+            backgroundColor: 'rgba(43, 146, 255, 0.16)',
+            fill: true,
+            tension: 0.35,
+            pointRadius: 5,
+            pointBackgroundColor: '#7f5cff',
+          }],
+        },
+        options: {
+          scales: {
+            x: { ticks: { color: '#c7d0ff' }, grid: { display: false } },
+            y: { ticks: { color: '#c7d0ff' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true },
+          },
+        },
+      });
+    }
 
-const url=window.URL.createObjectURL(blob)
+    function renderAnalytics(data) {
+      totalStudentsEl.textContent = data.totalStudents;
+      topStudentEl.textContent = data.topStudent;
+      avgClassEl.textContent = data.averageClassScore;
+      gradeCountsEl.textContent = `A: ${data.gradeCounts.A} • B: ${data.gradeCounts.B} • C: ${data.gradeCounts.C} • Fail: ${data.gradeCounts.Fail}`;
 
-const a=document.createElement("a")
+      if (!gradeChart) initializeCharts();
 
-a.href=url
+      gradeChart.data.labels = data.gradeLabels;
+      gradeChart.data.datasets[0].data = data.gradeData;
+      gradeChart.update();
 
-a.download="processed_students.csv"
+      topStudentsChart.data.labels = data.topStudentLabels;
+      topStudentsChart.data.datasets[0].data = data.topStudentValues;
+      topStudentsChart.update();
 
-a.click()
+      subjectChart.data.labels = data.subjectLabels;
+      subjectChart.data.datasets[0].data = data.subjectAverages;
+      subjectChart.update();
 
-status.innerHTML="✅ File processed successfully"
+      resultSection.style.display = 'grid';
+      chartsSection.style.display = 'grid';
+    }
 
-btn.innerHTML="Process Data"
-btn.disabled=false
+    function saveExcel(base64Data, filename) {
+      const link = document.createElement('a');
+      link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64Data}`;
+      link.download = filename;
+      link.click();
+      downloadLink.href = link.href;
+      downloadLink.textContent = 'Redownload Report';
+      downloadLink.style.display = 'inline-flex';
+    }
 
-})
+    async function uploadFile() {
+      const validation = validateFile(selectedFile);
+      if (validation) {
+        setStatus(validation, 'error');
+        return;
+      }
 
-.catch(error=>{
+      setLoading(true);
+      setStatus('Uploading and processing file…', 'info');
 
-status.innerHTML="❌ Something went wrong"
+      const formData = new FormData();
+      formData.append('file', selectedFile);
 
-btn.innerHTML="Process Data"
-btn.disabled=false
+      try {
+        const response = await fetch('/process', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await response.json();
 
-})
+        if (!response.ok) {
+          setStatus(`❌ ${data.error || 'Server processing error'}`, 'error');
+          setLoading(false);
+          return;
+        }
 
-}
+        setStatus('✅ Processing successful', 'success');
+        renderAnalytics(data.analytics);
+        saveExcel(data.fileBytes, data.filename);
+      } catch (error) {
+        setStatus('❌ Server processing error. Please try again.', 'error');
+      } finally {
+        setLoading(false);
+      }
+    }
 
-reader.readAsText(file)
-
-}
-
-</script>
-
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', handleDragOver);
+    dropZone.addEventListener('dragleave', handleDragLeave);
+    dropZone.addEventListener('drop', handleDrop);
+    fileInput.addEventListener('change', (event) => updateFile(event.target.files[0]));
+    processButton.addEventListener('click', uploadFile);
+  </script>
 </body>
 </html>
