@@ -2,48 +2,145 @@
 <html>
 <head>
     <title>Student Data Pipeline</title>
+
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            margin:0;
+            padding:0;
+            background: linear-gradient(135deg,#4e54c8,#8f94fb);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+
+        .container{
+            background:white;
+            width:500px;
+            padding:30px;
+            border-radius:20px;
+            text-align:center;
+            box-shadow:0 10px 30px rgba(0,0,0,.2);
+        }
+
+        h1{
+            color:#333;
+        }
+
+        p{
+            color:gray;
+            margin-bottom:25px;
+        }
+
+        input{
+            margin:20px 0;
+        }
+
+        button{
+            width:100%;
+            padding:14px;
+            border:none;
+            border-radius:10px;
+            background:#4e54c8;
+            color:white;
+            font-size:16px;
+            cursor:pointer;
+        }
+
+        button:hover{
+            opacity:.9;
+        }
+
+        #status{
+            margin-top:20px;
+            font-weight:bold;
+        }
+
+    </style>
 </head>
+
 <body>
 
-<h2>Upload Student CSV</h2>
+<div class="container">
+
+<h1>🎓 Student Data Pipeline</h1>
+
+<p>Upload your CSV file to analyze student performance</p>
 
 <input type="file" id="fileInput">
-<button onclick="uploadFile()">Process</button>
+
+<br>
+
+<button onclick="uploadFile()" id="btn">
+Process Data
+</button>
+
+<div id="status"></div>
+
+</div>
 
 <script>
-function uploadFile() {
-    const file = document.getElementById("fileInput").files[0];
 
-    if (!file) {
-        alert("Please select a file");
-        return;
-    }
+function uploadFile(){
 
-    const reader = new FileReader();
+const file=document.getElementById("fileInput").files[0]
+const status=document.getElementById("status")
+const btn=document.getElementById("btn")
 
-    reader.onload = function(e) {
-        fetch("https://student-pipeline.onrender.com/process", {
-            method: "POST",
-            body: e.target.result
-        })
-        .then(response => response.text())
-        .then(data => {
-            const blob = new Blob([data], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'processed_students.csv';
-            a.click();
-        })
-        .catch(error => {
-            console.error(error);
-            alert("Error processing file");
-        });
-    };
-
-    reader.readAsText(file);
+if(!file){
+status.innerHTML="❌ Please select a CSV file"
+return
 }
+
+btn.innerHTML="Processing..."
+btn.disabled=true
+
+const reader=new FileReader()
+
+reader.onload=function(e){
+
+fetch("https://student-pipeline.onrender.com/process",{
+method:"POST",
+body:e.target.result
+})
+
+.then(response=>response.blob())
+
+.then(blob=>{
+
+const url=window.URL.createObjectURL(blob)
+
+const a=document.createElement("a")
+
+a.href=url
+
+a.download="processed_students.csv"
+
+a.click()
+
+status.innerHTML="✅ File processed successfully"
+
+btn.innerHTML="Process Data"
+btn.disabled=false
+
+})
+
+.catch(error=>{
+
+status.innerHTML="❌ Something went wrong"
+
+btn.innerHTML="Process Data"
+btn.disabled=false
+
+})
+
+}
+
+reader.readAsText(file)
+
+}
+
 </script>
 
 </body>
